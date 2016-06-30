@@ -9,7 +9,8 @@
 
  */
  (function($) {
-    if (window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')) {
+    is_change_page = window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')
+    if (is_change_page) {
         var obj_url = '../../obj-data/';
     }
     else {
@@ -80,7 +81,12 @@
         },
         
         getLookupUrl: function(cID) {
-            return '../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+            if (is_change_page) {
+                return '../../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+            }
+            else {
+            	return '../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+            }
         },
         
         getFkId: function() {
@@ -312,7 +318,7 @@
     };
 
     $(document).ready(function() {
-    	if (window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')) {
+    	if (is_change_page) {
             var url = '../../genericadmin-init/';
         }
         else {

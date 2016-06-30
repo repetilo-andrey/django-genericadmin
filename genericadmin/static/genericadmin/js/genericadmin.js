@@ -9,10 +9,17 @@
 
  */
  (function($) {
+    if (window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')) {
+        var obj_url = '../../obj-data/';
+    }
+    else {
+        var obj_url = '../obj-data/';
+    }
+
     var GenericAdmin = {
         url_array: null,
         fields: null,
-        obj_url: "../obj-data/",
+        obj_url: obj_url,
         admin_media_url: window.__admin_media_prefix__,
 		popup: '_popup',
         
@@ -305,8 +312,15 @@
     };
 
     $(document).ready(function() {
+    	if (window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')) {
+            var url = '../../genericadmin-init/';
+        }
+        else {
+            var url = '../genericadmin-init/';
+        }
+
         $.ajax({
-            url: '../genericadmin-init/',
+            url: url,
             dataType: 'json',
             success: function(data) {
                 var url_array = data.url_array,

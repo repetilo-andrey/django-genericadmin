@@ -9,10 +9,17 @@
 
  */
  (function($) {
+    is_change_page = window.location.toString().endsWith('change/') || window.location.toString().endsWith('change')
+    if (is_change_page) {
+        var obj_url = '../../obj-data/';
+    }
+    else {
+        var obj_url = '../obj-data/';
+    }
     var GenericAdmin = {
         url_array: null,
         fields: null,
-        obj_url: "../obj-data/",
+        obj_url: obj_url,
 		popup: '_popup',
         
         prepareSelect: function(select) {
@@ -61,7 +68,7 @@
         },
 
         getLookupUrlParams: function(cID) {
-            var q = this.url_array[cID][2] || {},
+            var q = this.url_array[cID][1] || {}, 
                 str = [];
             for(var p in q) {
                 str.push(encodeURIComponent(p) + "=" + encodeURIComponent(q[p]));
@@ -70,10 +77,14 @@
             url = x ? ("?" + x) : "";
             return url;
         },
-        getLookupUrl: function(cID, with_params) {
-            var url = this.url_array[cID][1];
-            if(with_params){url = url + this.getLookupUrlParams(cID);}
-            return url;
+        
+        getLookupUrl: function(cID) {
+            if (is_change_page) {
+                return '../../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+            }
+            else {
+            	return '../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+            }
         },
         
         getFkId: function() {
@@ -105,7 +116,7 @@
         
         showLookupLink: function() {
             var that = this,
-                url = this.getLookupUrl(this.cID, true),
+                url = this.getLookupUrl(this.cID),
                 id = 'lookup_' + this.getFkId(),
                 link = '<a class="related-lookup" id="' + id + '" href="' + url + '">';
                 
@@ -133,7 +144,7 @@
         popRelatedObjectLookup: function(link) {
             var name = id_to_windowname(this.getFkId()),
 				url_parts = [],
-                href,
+                href, 
                 win;
 
             if (link.href.search(/\?/) >= 0) {
@@ -159,8 +170,9 @@
             var that = this;
             return function() {
                 var value = that.object_input.val();
-                if (!value) {
-                    return
+                
+                if (!value) { 
+                    return 
                 }
                 //var this_id = that.getFkId();
                 $('#lookup_text_' + that.getFkId() + ' span').text('loading...');
@@ -173,7 +185,7 @@
                     },
                     success: function(item) {
                         if (item && item.content_type_text && item.object_text) {
-                            var url = that.getLookupUrl(that.cID, false);
+                            var url = that.getLookupUrl(that.cID);
                             $('#lookup_text_' + that.getFkId() + ' a')
                                 .text(item.content_type_text + ': ' + item.object_text)
                                 .attr('href', url + item.object_id);
@@ -304,8 +316,14 @@
     };
 
     $(document).ready(function() {
+    	if (is_change_page) {
+            var url = '../../genericadmin-init/';
+        }
+        else {
+            var url = '../genericadmin-init/';
+        }
         $.ajax({
-            url: '../genericadmin-init/',
+            url: url,
             dataType: 'json',
             success: function(data) {
                 var url_array = data.url_array,

@@ -61,7 +61,7 @@
         },
 
         getLookupUrlParams: function(cID) {
-            var q = this.url_array[cID][1] || {}, 
+            var q = this.url_array[cID][2] || {},
                 str = [];
             for(var p in q) {
                 str.push(encodeURIComponent(p) + "=" + encodeURIComponent(q[p]));
@@ -70,9 +70,10 @@
             url = x ? ("?" + x) : "";
             return url;
         },
-        
-        getLookupUrl: function(cID) {
-            return '../../../' + this.url_array[cID][0] + '/' + this.getLookupUrlParams(cID);
+        getLookupUrl: function(cID, with_params) {
+            var url = this.url_array[cID][1];
+            if(with_params){url = url + this.getLookupUrlParams(cID);}
+            return url;
         },
         
         getFkId: function() {
@@ -104,10 +105,11 @@
         
         showLookupLink: function() {
             var that = this,
-                url = this.getLookupUrl(this.cID),
+                url = this.getLookupUrl(this.cID, true),
                 id = 'lookup_' + this.getFkId(),
                 link = '<a class="related-lookup" id="' + id + '" href="' + url + '">';
                 
+
             link = link + '<strong id="lookup_text_'+ this.getFkId() +'" margin-left: 5px"><a target="_new" href="#"></a><span></span></strong>';
 
             // insert link html after input element
@@ -131,7 +133,7 @@
         popRelatedObjectLookup: function(link) {
             var name = id_to_windowname(this.getFkId()),
 				url_parts = [],
-                href, 
+                href,
                 win;
 
             if (link.href.search(/\?/) >= 0) {
@@ -157,9 +159,8 @@
             var that = this;
             return function() {
                 var value = that.object_input.val();
-                
-                if (!value) { 
-                    return 
+                if (!value) {
+                    return
                 }
                 //var this_id = that.getFkId();
                 $('#lookup_text_' + that.getFkId() + ' span').text('loading...');
@@ -172,7 +173,7 @@
                     },
                     success: function(item) {
                         if (item && item.content_type_text && item.object_text) {
-                            var url = that.getLookupUrl(that.cID);
+                            var url = that.getLookupUrl(that.cID, false);
                             $('#lookup_text_' + that.getFkId() + ' a')
                                 .text(item.content_type_text + ': ' + item.object_text)
                                 .attr('href', url + item.object_id);

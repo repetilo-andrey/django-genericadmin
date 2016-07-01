@@ -1,6 +1,7 @@
 import json
 from functools import update_wrapper
 
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib import admin
 from django.conf.urls import url
 from django.conf import settings
@@ -9,10 +10,9 @@ try:
 except ImportError:
     from django.contrib.contenttypes.admin import GenericStackedInline, GenericTabularInline
     from django.contrib.contenttypes.fields import GenericForeignKey
-
 from django.contrib.contenttypes.models import ContentType
 try:
-    from django.utils.encoding import force_text 
+    from django.utils.encoding import force_text
 except ImportError:
     from django.utils.encoding import force_unicode as force_text
 from django.utils.text import capfirst
@@ -24,7 +24,7 @@ except ImportError:
     from django.contrib.admin.options import IS_POPUP_VAR
 from  django.core.exceptions import ObjectDoesNotExist
 
-JS_PATH = getattr(settings, 'GENERICADMIN_JS', 'genericadmin/js/') 
+JS_PATH = getattr(settings, 'GENERICADMIN_JS', 'genericadmin/js/')
 
 class BaseGenericModelAdmin(object):
     class Media:
@@ -44,8 +44,7 @@ class BaseGenericModelAdmin(object):
         self.Media.js = tuple(media)
         
         self.content_type_whitelist = [s.lower() for s in self.content_type_whitelist]
-        self.content_type_blacklist = [s.lower() for s in self.content_type_blacklist]        
-            
+        self.content_type_blacklist = [s.lower() for s in self.content_type_blacklist]
         super(BaseGenericModelAdmin, self).__init__(model, admin_site)
 
     def get_generic_field_list(self, request, prefix=''):
@@ -62,12 +61,12 @@ class BaseGenericModelAdmin(object):
                     fields['inline'] = prefix != ''
                     fields['prefix'] = prefix
                     field_list.append(fields)
-        else:    
+        else:
             for field in self.model._meta.virtual_fields:
                 if isinstance(field, GenericForeignKey) and \
                         field.ct_field not in exclude and field.fk_field not in exclude:
                     field_list.append({
-                        'ct_field': field.ct_field, 
+                        'ct_field': field.ct_field,
                         'fk_field': field.fk_field,
                         'inline': prefix != '',
                         'prefix': prefix,
@@ -100,12 +99,17 @@ class BaseGenericModelAdmin(object):
                 val = force_text('%s/%s' % (c.app_label, c.model))
                 params = self.content_type_lookups.get('%s.%s' % (c.app_label, c.model), {})
                 params = url_params_from_lookup_dict(params)
+                try:
+                    # Reverse the admin changelist url
+                    url = reverse('admin:%s_%s_changelist' % (
+                        c.app_label, c.model))
+                except (NoReverseMatch, ):
+                    continue
                 if self.content_type_whitelist:
                     if val in self.content_type_whitelist:
-                        obj_dict[c.id] = (val, params)
+                        obj_dict[c.id] = (val, url, params)
                 elif val not in self.content_type_blacklist:
-                    obj_dict[c.id] = (val, params)
-        
+                    obj_dict[c.id] = (val, url, params)
             data = {
                 'url_array': obj_dict,
                 'fields': self.get_generic_field_list(request),

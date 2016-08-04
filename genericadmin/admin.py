@@ -99,17 +99,12 @@ class BaseGenericModelAdmin(object):
                 val = force_text('%s/%s' % (c.app_label, c.model))
                 params = self.content_type_lookups.get('%s.%s' % (c.app_label, c.model), {})
                 params = url_params_from_lookup_dict(params)
-                try:
-                    # Reverse the admin changelist url
-                    url = reverse('admin:%s_%s_changelist' % (
-                        c.app_label, c.model))
-                except (NoReverseMatch, ):
-                    continue
+
                 if self.content_type_whitelist:
                     if val in self.content_type_whitelist:
-                        obj_dict[c.id] = (val, url, params)
+                        obj_dict[c.id] = (val, params)
                 elif val not in self.content_type_blacklist:
-                    obj_dict[c.id] = (val, url, params)
+                    obj_dict[c.id] = (val, params)
             data = {
                 'url_array': obj_dict,
                 'fields': self.get_generic_field_list(request),
